@@ -12,7 +12,7 @@ var userSchema = Schema({
     email: String,
     password: String,
     image: String,
-    cursos: [{type: Schema.ObjectId, ref:'curso'}],
+    courses: [{type: Schema.ObjectId, ref:'course'}],
     //Progreso: ??
 });
 
