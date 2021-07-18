@@ -210,10 +210,73 @@ function removeUser(req, res){
     }
 }
 
+function uploadImage(req, res){
+    var userId = req.params.id;
+    var update = req.body;
+    var fileName;
+
+    if(userId != req.user.sub){
+        res.status(401).send({message:'No tienes permisos'});
+    }else{
+        // Identifica si vienen archivos
+        if(req.files){
+            
+            //ruta en la que llega la imagen
+            var filePath = req.files.image.path;
+
+            //fileSplit separa palabras, direcciones, etc
+            // Separar en jerarquia la ruta de la imagen alt + 92 "\\   alt + 124 ||"
+            var fileSplit = filePath.split('\\');
+            //filePath: document/image/mi-imagen.jpg   0/1/2
+            var fileName = fileSplit[2];
+
+            var extension = fileName.split('\.');
+            var fileExt = extension[1];
+            if( fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
+                User.findByIdAndUpdate(userId, {image: fileName}, {new: true}, (err, userUpdate) => {
+                    if(err){
+                        res.status(500).send({message:'Error general en imagen'});
+                    }else if(userUpdate){
+                        res.send({user: userUpdate, userImage: userUpdate.image});
+                    }else{
+                        res.status(401).send({message:'No se ha podido actualizar'});
+                    }
+                });
+            }else{
+                fs.unlink(filePath, (err) =>{
+                    if(err){
+                        res.status(500).send({message:'Extension no valida y error al eliminar el archivo'});
+                    }else{
+                        res.send({message:'Extension no valida'});
+                    }
+                })
+            }
+        }else{
+            res.status(404).send({message:'No has enviado una imagen a subir'});
+        }
+    }
+}
+
+function getImage(req, res){
+    var fileName = req.params.fileName;
+    var pathFile = './uploads/users/' + fileName;
+
+    fs.exists(pathFile, (exists) => {
+        if(exists){
+            res.sendFile(path.resolve(pathFile));
+        }else{
+            res.status(404).send({message:'Imagen inexistente'})
+        }
+    })
+}
+
+
 module.exports = {
     adminInit,
     signUp,
     login,
     updateUser,
-    removeUser
+    removeUser,
+    uploadImage,
+    getImage
 }

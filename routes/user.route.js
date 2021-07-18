@@ -12,5 +12,7 @@ api.post('/signUp', userController.signUp);
 api.post('/login', userController.login);
 api.put('/updateUser/:id', [mdAuth.ensureAuth], userController.updateUser);
 api.delete('/removeUser/:id', [mdAuth.ensureAuth], userController.removeUser);
+api.put('/:id/uploadImage', [mdAuth.ensureAuth, upload], userController.uploadImage); //YA
+api.get('/getImage/:fileName', [upload], userController.getImage);// N/A
 
 module.exports = api;
