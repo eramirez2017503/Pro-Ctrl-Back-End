@@ -48,7 +48,7 @@ function signUp(req, res){
     var user = new User();
     var params = req.body;
 
-    if(params.rol && params.name && params.lastname && params.username && params.phone && params.email && params.password){
+    if(params.rol && params.name && params.username && params.phone && params.email && params.password){
         User.findOne({username: params.username.toLowerCase()}, (err, userFind) => {
             if(err){
                 return res.status(500).send({message:'Error al buscar el username'});
