@@ -2,7 +2,7 @@
 
 var User = require('../models/user.model'); 
 var Course = require('../models/course.model'); 
-//var Themes = require('../models/themes.model'); 
+//var topic = require('../models/topic.model'); 
 
 
 function createProgress(req, res){
