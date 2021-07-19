@@ -313,7 +313,7 @@ function uploadImage(req, res){
     }
 }
 
-function getImage(req, res){
+function getImageCourse(req, res){
     var fileName = req.params.fileName;
     var pathFile = './uploads/courses/' + fileName;
 
@@ -334,5 +334,5 @@ module.exports = {
     listCoursesAdmin,
     listCoursesUser,
     uploadImage,
-    getImage
+    getImageCourse
 }
