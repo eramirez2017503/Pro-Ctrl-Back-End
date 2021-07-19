@@ -11,7 +11,7 @@ var courseSchema = Schema({
     requirements : String,
     password : String,
     imageCourse : String,
-    themes : [{type: Schema.ObjectId, ref: "theme"}], //falta revisar el nombre que se ponga a la colleción.
+    topics : [{type: Schema.ObjectId, ref: "topic"}],
     administrator : {type: Schema.ObjectId, ref: "user"},
     users : [{type: Schema.ObjectId, ref: "user"}]
 });

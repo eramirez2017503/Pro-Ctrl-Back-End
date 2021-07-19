@@ -5,11 +5,11 @@ var Schema = mongoose.Schema;
 
 var topicSchema = Schema({
     nameTopic: String,
-    descriptionTopiv: String,
-    cursos: {type: Schema.ObjectId, ref:'curso'},
+    descriptionTopic: String,
+    course: {type: Schema.ObjectId, ref:'course'},
     level: Number,
     content: String,
     ImageTopic: String
 });
 
-module.exports = mongoose.model('topic', userSchema);
+module.exports = mongoose.model('topic', topicSchema);

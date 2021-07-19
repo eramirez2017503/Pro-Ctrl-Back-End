@@ -3,6 +3,7 @@
 var express = require('express');
 var bodyParser =  require('body-parser');
 var userRoute = require('./routes/user.route');
+var topicRoute = require('./routes/topic.route');
 
 var app = express();
 
@@ -18,5 +19,6 @@ app.use((req, res, next) => {
 });
 
 app.use('/v1', userRoute);
+app.use('/v1', topicRoute);
 
 module.exports = app;
