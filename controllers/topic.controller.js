@@ -26,7 +26,7 @@ function createTopic(req, res){
                 }else{
                     topic.nameTopic = params.nameTopic;
                     topic.descriptionTopic = params.descriptionTopic;
-                    topic.course = params.course;
+                    topic.course = courseId;
                     topic.level = params.level;
                     topic.save((err, topicSaved)=>{
                         if(err){

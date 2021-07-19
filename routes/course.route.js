@@ -15,6 +15,6 @@ api.post('getCourseById/:courseId', [mdAuth.ensureAuth], courseController.getCou
 api.get('listCoursesAdmin/:userId', [mdAuth.ensureAuth, mdAuth.validRolMaestro], courseController.listCoursesAdmin);
 api.get('listCoursesUser/:userId', [mdAuth.ensureAuth, mdAuth.validRolAlumno], courseController.listCoursesUser);
 api.post('/:userId/uploadImage/:courseId', [mdAuth.ensureAuth, mdAuth.validRolMaestro], courseController.uploadImage);
-api.get('getImageCourse/:fileName', [upload], courseController.getImage);
+api.get('getImageCourse/:fileName', [upload], courseController.getImageCourse);
 
 module.exports = api;
