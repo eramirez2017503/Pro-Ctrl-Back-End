@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 var progressSchema = Schema({
     user: String,
     course: [{type: Schema.ObjectId, ref:'course'}],
-    themes: [{type: Schema.ObjectId, ref:'themes'}],
+    topic: [{type: Schema.ObjectId, ref:'topic'}],
     total: Number
 });
 
