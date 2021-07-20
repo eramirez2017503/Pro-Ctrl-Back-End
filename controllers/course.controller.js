@@ -26,12 +26,12 @@ function createCourse(req, res){
                         return res.send({message: 'El nombre identificador del curso ya existe'});
                     }else{ //El campo de la contraseña será opcional y de esto se encaragar un ngIf de angular
                         let course = new Course();
-                        course.nombre = params.name;
+                        course.name = params.name;
                         course.idCourse = params.idCourse;
                         course.level = params.level;
                         course.description = params.description;
                         course.requirements = params.requirements;
-                        administrator = userId; 
+                        course.administrator = userId; 
                         if(params.password == null || params.password == ''){ //si viene contraseña nula (para los publicos)
                             course.password = '';
                             course.save((err, courseSaved)=>{
