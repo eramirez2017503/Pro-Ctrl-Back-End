@@ -101,11 +101,19 @@ function updateCourse(req, res){
     var userId = req.params.userId;
     var courseId = req.params.courseId;
     var params = req.body;
-    var actualizacion = false; 
+    var actualizacionNombre = false; 
+    var actualizacionidCurse = false; 
 
     if(userId != req.user.sub){
         return res.status(400).send({message:'No posees permisos para hacer esta accion'});
     }else{
+        /*
+        if(params.password != null != params.password != ''){
+            return res.status(400).send({message:'No se puede actualizar la contraseña desde esta función'});
+        }else{
+            
+        }
+        */
         User.findById(userId, (err, userFind)=>{
             if(err){
                 return res.status(400).send({message:'Error general al buscar el usuario'});
@@ -114,7 +122,42 @@ function updateCourse(req, res){
                     if(err){
                         return res.status(400).send({message:'Error general al buscar el curso'});
                     }else if(courseFind){
-                        if(params.name != courseFind.name || params.idCourse != courseFind.idCourse){
+                        if(params.name != courseFind.name && params.idCourse != courseFind.idCourse){ //actualización si se cambia el nombre y el identificador
+                            if(params.name != courseFind.name){ //si se cambio el nombre
+                                Course.findOne({name : params.name}, (err, courseNameFind)=>{
+                                    if(err){
+                                        return res.status(500).send({message:'Error al buscar el curso'});
+                                    }else if (courseNameFind){
+                                        return res.send({message: 'Ya existente un curso con este nombre'})
+                                    }else{  
+                                        actualizacionNombre = true;
+                                    }
+                                });
+                            }
+                            if(params.idCourse != courseFind.idCourse){
+                                Course.findOne({idCourse : params.idCourse}, (err, courseNameFind)=>{
+                                    if(err){
+                                        return res.status(500).send({message:'Error al buscar el curso'});
+                                    }else if (courseNameFind){
+                                        return res.send({message: 'Ya existente un curso con este identificador'})
+                                    }else{  
+                                        actualizacionidCurse = true;
+                                    }
+                                });
+                            }
+                            if(!actualizacionNombre && !actualizacionidCurse){
+                                Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                    if(err){
+                                        return res.status(500).send({message:'Error general al actualizar'});
+                                    }else if(courseUpdated){
+                                        return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                    }else{
+                                        return res.send({message: 'No se pudo actualizar el curso'})
+                                    }
+                                });
+                                
+                            }
+                        }else if(params.name != courseFind.name || params.idCourse != courseFind.idCourse){ //si solo se cambio uno de los dos
                             if(params.name != courseFind.name){ //si se cambio el nombre
                                 Course.findOne({name : params.name}, (err, courseNameFind)=>{
                                     if(err){
@@ -126,7 +169,7 @@ function updateCourse(req, res){
                                             if(err){
                                                 return res.status(500).send({message:'Error general al actualizar'});
                                             }else if(courseUpdated){
-                                                actualizacion = true;
+                                                return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
                                             }else{
                                                 return res.send({message: 'No se pudo actualizar el curso'})
                                             }
@@ -134,7 +177,7 @@ function updateCourse(req, res){
                                     }
                                 });
                             }
-                            if(params.idCourse != courseFind.idCourse){
+                            else if (params.idCourse != courseFind.idCourse){ //Se probo, esto revisar bastante
                                 Course.findOne({idCourse : params.idCourse}, (err, courseNameFind)=>{
                                     if(err){
                                         return res.status(500).send({message:'Error al buscar el curso'});
@@ -145,16 +188,13 @@ function updateCourse(req, res){
                                             if(err){
                                                 return res.status(500).send({message:'Error general al actualizar'});
                                             }else if(courseUpdated){
-                                                actualizacion = true;
+                                                return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
                                             }else{
                                                 return res.send({message: 'No se pudo actualizar el curso'})
                                             }
                                         });
                                     }
                                 });
-                            }
-                            if(actualizacion){
-                                return res.status(200).send({message:'Se actualizo el curso satisfactoriamente'});
                             }
                         }else{
                             Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
