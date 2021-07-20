@@ -10,6 +10,7 @@ var path = require('path');
 function createCourse(req, res){
     var userId = req.params.userId;
     var params = req.body;
+    var bandera = false; 
 
     if(userId != req.user.sub){
         return res.status(400).send({message:'No posees permisos para hacer esta accion'});
@@ -18,45 +19,28 @@ function createCourse(req, res){
             if(err){
                 return res.status(500).send({message: 'Error general al buscar el usuario'});
             }else if(userFind){
-                Course.findOne({idCourse : params.idCourse, name : params.name}, (err, courseFind)=>{ //buscar si el nombre o courseId ya existe
+                Course.findOne({idCourse : params.idCourse}, (err, courseFind)=>{ //buscar si el nombre o courseId ya existe
                     //posiblemente convertir a toLowerCase------------ revisar luego
                     if(err){
                         return res.status(400).send({message:'Error general al buscar el curso'});
                     }else if(courseFind){
                         return res.send({message: 'El nombre identificador del curso ya existe'});
                     }else{ //El campo de la contraseña será opcional y de esto se encaragar un ngIf de angular
-                        let course = new Course();
-                        course.name = params.name;
-                        course.idCourse = params.idCourse;
-                        course.level = params.level;
-                        course.description = params.description;
-                        course.requirements = params.requirements;
-                        course.administrator = userId; 
-                        if(params.password == null || params.password == ''){ //si viene contraseña nula (para los publicos)
-                            course.password = '';
-                            course.save((err, courseSaved)=>{
-                                if(err){
-                                    return res.status(400).send({message:'Error general al guardar el curso'});
-                                }else if(courseSaved){
-                                    User.findByIdAndUpdate(userId, {$push : {courses : courseSaved}}, {new : true}, (err, coursePush)=>{
-                                        if(err){
-                                            return res.status(400).send({message:'Error general al guardar el curso'});
-                                        }else if(coursePush){
-                                            return res.send({message:'El curso se guardo satisfactoriamente', coursePush});
-                                        }else{
-                                            return res.send({message: 'No se pudo guardar el curso deseado'});
-                                        }
-                                    })
-                                }else{
-                                    return res.send({message: 'No se pudo guardar el curso'});
-                                }
-                            });
-                        }else{ //si es curso privado necesitara tener contraseña 
-                            bcrypt.hash(params.password, null, null, (err, passwordHash)=>{
-                                if(err){
-                                    return res.status(500).send({message:'Error al encriptar la contraseña'});
-                                }else if(passwordHash){
-                                    course.password = passwordHash;
+                        Course.findOne({name : params.name}, (err, courseNameFind)=>{
+                            if(err){
+                                return res.status(400).send({message:'Error general al buscar el curso'});
+                            }else if(courseNameFind){
+                                return res.send({message: 'El nombre del curso ya existe'});
+                            }else{
+                                let course = new Course();
+                                course.name = params.name;
+                                course.idCourse = params.idCourse;
+                                course.level = params.level;
+                                course.description = params.description;
+                                course.requirements = params.requirements;
+                                course.administrator = userId; 
+                                if(params.password == null || params.password == ''){ //si viene contraseña nula (para los publicos)
+                                    course.password = '';
                                     course.save((err, courseSaved)=>{
                                         if(err){
                                             return res.status(400).send({message:'Error general al guardar el curso'});
@@ -74,11 +58,36 @@ function createCourse(req, res){
                                             return res.send({message: 'No se pudo guardar el curso'});
                                         }
                                     });
-                                }else{
-                                    return res.status(401).send({message:'Password no encriptada'});
+                                }else{ //si es curso privado necesitara tener contraseña 
+                                    bcrypt.hash(params.password, null, null, (err, passwordHash)=>{
+                                        if(err){
+                                            return res.status(500).send({message:'Error al encriptar la contraseña'});
+                                        }else if(passwordHash){
+                                            course.password = passwordHash;
+                                            course.save((err, courseSaved)=>{
+                                                if(err){
+                                                    return res.status(400).send({message:'Error general al guardar el curso'});
+                                                }else if(courseSaved){
+                                                    User.findByIdAndUpdate(userId, {$push : {courses : courseSaved}}, {new : true}, (err, coursePush)=>{
+                                                        if(err){
+                                                            return res.status(400).send({message:'Error general al guardar el curso'});
+                                                        }else if(coursePush){
+                                                            return res.send({message:'El curso se guardo satisfactoriamente', coursePush});
+                                                        }else{
+                                                            return res.send({message: 'No se pudo guardar el curso deseado'});
+                                                        }
+                                                    })
+                                                }else{
+                                                    return res.send({message: 'No se pudo guardar el curso'});
+                                                }
+                                            });
+                                        }else{
+                                            return res.status(401).send({message:'Password no encriptada'});
+                                        }
+                                    })       
                                 }
-                            })       
-                        }
+                            }
+                        });
                     }
                 });
             }else{
