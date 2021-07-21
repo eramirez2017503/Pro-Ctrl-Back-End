@@ -9,7 +9,7 @@ var topicSchema = Schema({
     course: {type: Schema.ObjectId, ref:'course'},
     level: Number,
     content: String,
-    ImageTopic: String
+    imageTopic: String
 });
 
 module.exports = mongoose.model('topic', topicSchema);

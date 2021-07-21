@@ -12,7 +12,7 @@ api.post('/:userId/:courseId/createTopic', [mdAuth.ensureAuth], topicController.
 api.put('/:userId/:courseId/updateTopic/:topicId', [mdAuth.ensureAuth], topicController.updateTopic);
 api.delete('/:userId/:courseId/removeTopic/:topicId', [mdAuth.ensureAuth], topicController.deleteTopic);
 api.get('/:courseId/listTopics', topicController.listTopics);
-api.put('/:id/uploadImage', [mdAuth.ensureAuth, upload], topicController.uploadImage);
-api.get('/getImage/:fileName', upload, topicController.getImage);
+api.put('/:userId/:courseId/uploadImageTopic/:topicId', [mdAuth.ensureAuth, upload], topicController.uploadImage);
+api.get('/getImageTopic/:fileName', upload, topicController.getImage);
 
 module.exports = api;

@@ -179,7 +179,7 @@ function deleteTopic(req, res){
 function listTopics(req, res){
     let courseId = req.params.courseId
 
-    Topic.find({course: courseId}).exec((err,topics)=>{
+    Topic.find({course: courseId}).populate("course").exec((err,topics)=>{
         if(err){
             return res.status(500).send({message:'Error general al buscar los temas'});
         }else if(topics){
@@ -212,15 +212,16 @@ function getTopicById(req, res){
 function uploadImage(req, res){
     var userId = req.params.userId;
     var courseId = req.params.courseId;
+    var topicId = req.params.topicId;
     var fileName;
 
     if(userId != req.user.sub){
         res.status(401).send({message:'No tienes permisos'});
     }else{
         // Identifica si vienen archivos
-        if(req.files.imageCourse){
+        if(req.files.imageTopic){
             //ruta en la que llega la imagen
-            var filePath = req.files.imageCourse.path;
+            var filePath = req.files.imageTopic.path;
             
             //fileSplit separa palabras, direcciones, etc
             // Separar en jerarquia la ruta de la imagen alt + 92 "\\   alt + 124 ||"
@@ -231,15 +232,22 @@ function uploadImage(req, res){
             var extension = fileName.split('\.');
             var fileExt = extension[1];
             if( fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
-                Course.findOneAndUpdate({_id: courseId, administrator : userId}, {imageTeam: fileName}, {new: true}, (err, courseUpdate) => {
+                Course.find({_id: courseId, administrator: userId}).exec((err, courseFind)=>{
                     if(err){
-                        res.status(500).send({message:'Error general en imagen'});
-                    }else if(courseUpdate){
-                        res.send({course: courseUpdate, imageCourse: courseUpdate.imageCourse});
-                    }else{
-                        res.status(401).send({message:'No se ha podido actualizar'});
+                        res.status(500).send({message:'Error general en buscar el curso'});
+                    }else if(courseFind){
+                        Topic.findOneAndUpdate({_id: topicId, course: courseId}, {imageTopic: fileName}, {new: true}, (err, topicUpdate) => {
+                            if(err){
+                                res.status(500).send({message:'Error general en imagen'});
+                            }else if(topicUpdate){
+                                res.send({topic: topicUpdate, imageTopic: topicUpdate.imageTopic});
+                            }else{
+                                res.status(401).send({message:'No se ha podido actualizar'});
+                            }
+                        });                    }else{
+                        res.status(401).send({message:'No se ha encontrado el curso'});
                     }
-                });
+                })
             }else{
                 fs.unlink(filePath, (err) =>{
                     if(err){
