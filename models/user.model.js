@@ -13,7 +13,8 @@ var userSchema = Schema({
     password: String,
     image: String,
     courses: [{type: Schema.ObjectId, ref:'course'}],
-    progresos: [{type: Schema.ObjectId, ref:'progress'}]
+    progresos: [{type: Schema.ObjectId, ref:'progress'}],
+    reports: [{type: Schema.ObjectId, ref:'report'}]
 });
 
 module.exports = mongoose.model('user', userSchema);

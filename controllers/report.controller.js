@@ -39,15 +39,16 @@ function createReport(req, res){
                                         if(err){
                                             return res.status(400).send({message:'Error general al guardar el reporte'});
                                         }else if(reportSaved){
-                                            User.findByIdAndUpdate(userId, {$push : {reports : reportSaved}}, {new : true}, (err, reportPush)=>{
+                                            User.findByIdAndUpdate(userId, {$push : {reports : reportSaved._id}}, {new : true}, (err, reportPush)=>{
                                                 if(err){
                                                     return res.status(400).send({message:'Error general al guardar el reporte'});
-                                                }else if(reportPush){
+                                                }else if(reportPush){                                                    
+                                                    console.log('Valores de reportPush: '+reportPush);
                                                     return res.send({message:'El reporte se guardo satisfactoriamente', reportPush});
                                                 }else{
                                                     return res.send({message: 'No se pudo guardar el reporte deseado'});
                                                 }
-                                            })
+                                            }).populate('reports');
                                         }else{
                                             return res.send({message: 'No se pudo guardar el reporte'});
                                         }
@@ -62,7 +63,7 @@ function createReport(req, res){
                                                 if(err){
                                                     return res.status(400).send({message:'Error general al guardar el reporte'});
                                                 }else if(reportSaved){
-                                                    User.findByIdAndUpdate(userId, {$push : {reports : reportSaved}}, {new : true}, (err, reportPush)=>{
+                                                    User.findByIdAndUpdate(userId, {$push : {reports : reportSaved._id}}, {new : true}, (err, reportPush)=>{
                                                         if(err){
                                                             return res.status(400).send({message:'Error general al guardar el reporte'});
                                                         }else if(reportPush){
@@ -70,7 +71,7 @@ function createReport(req, res){
                                                         }else{
                                                             return res.send({message: 'No se pudo guardar el reporte deseado'});
                                                         }
-                                                    })
+                                                    }).populate('reports');
                                                 }else{
                                                     return res.send({message: 'No se pudo guardar el reporte'});
                                                 }
@@ -94,27 +95,29 @@ function createReport(req, res){
 function updateReport(req,res){
     var userId = req.params.userId;
     var reportId = req.params.reportId;
-    var params = req.body;
+    var update = req.body;
 
     if(userId != req.user.sub){
         return res.status(400).send({message:'No posees permisos para hacer esta accion'});
     }else{
-        User.findOne({_id : userId}, (err, userFind)=>{
+        User.findOne({_id : userId, reports: reportId}, (err, userFind)=>{
             if(err){
                 return res.status(500).send({message: 'Error general al buscar el usuario'});
             }else if(userFind){
-                Report.findById(reportId, (err, reportFind)=>{
+                Report.findOne({_id: reportId}, (err, reportFind)=>{
                     if(err){
                         return res.status(500).send({message: 'Error general al buscar el report'});
-                    }else if(reportFind.users == reportFind){
-                        if(update.nameUnit != reportFind.nameUnit){
+                    }else if(reportFind != null || reportFind != undefined){
+                        if(update.password){
+                            return res.status(401).send({message: 'No puedes actualizar la password'});
+                        }else if(update.nameUnit != reportFind.nameUnit){
                             Report.findOne({nameUnit : update.nameUnit}, (err, existingReport)=>{
                                 if(err){
                                     return res.status(500).send({message: 'Error general al buscar unidad del reporte'});
                                 }else if(existingReport){
                                     return res.send({message: 'Este nombre de unidad del reporte ya esta en uso'})
                                 }else{
-                                    Report.findOneAndUpdate({_id : reportId}, update,{new: true}, (err, reportUpdated)=>{
+                                    Report.findByIdAndUpdate(reportId, update,{new: true}, (err, reportUpdated)=>{
                                         if(err){
                                             return res.status(500).send({message: 'Error general al actualizar el reporte'});
                                         }else if(reportUpdated){
@@ -126,8 +129,7 @@ function updateReport(req,res){
                                 }
                             });
                         }else{
-                            Report.findByIdAndUpdate(reportId, update, (err, reportUpdated)=>{
-                                console.log(update);
+                            Report.findByIdAndUpdate(reportId, update, {new: true}, (err, reportUpdated)=>{
                                 if(err){
                                     return res.status(500).send({message: 'Error general al actualizar el reporte'});
                                 }else if(reportUpdated){
