@@ -9,8 +9,7 @@ var path = require('path');
 
 function createCourse(req, res){
     var userId = req.params.userId;
-    var params = req.body;
-    var bandera = false; 
+    var params = req.body;    
 
     if(userId != req.user.sub){
         return res.status(400).send({message:'No posees permisos para hacer esta accion'});
@@ -38,6 +37,7 @@ function createCourse(req, res){
                                 course.level = params.level;
                                 course.description = params.description;
                                 course.requirements = params.requirements;
+                                course.type = params.type;
                                 course.administrator = userId; 
                                 if(params.password == null || params.password == ''){ //si viene contraseña nula (para los publicos)
                                     course.password = '';
@@ -373,6 +373,23 @@ function getImageCourse(req, res){
             res.status(404).send({message:'Imagen inexistente'})
         }
     })
+}
+
+function inscription(req, res){
+    var userId = req.params.userId;
+    var courseId = req.params.courseId;
+
+    if(userId != req.user.sub){
+        return res.status(400).send({message:'No posees permisos para hacer esta accion'});
+    }else{
+        Course.findOne({_id : courseId}, (err, courseFind)=>{
+            if(err){
+
+            }else if(courseFind){
+                
+            }
+        })
+    }
 }
 
 module.exports = {
