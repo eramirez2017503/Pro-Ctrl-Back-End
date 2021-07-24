@@ -2,13 +2,13 @@
 
 var User = require('../models/user.model'); 
 var Course = require('../models/course.model'); 
-//var topic = require('../models/topic.model'); 
+var Topic = require('../models/topic.model'); 
 
 
 function createProgress(req, res){
     var userId = req.params.id;
     var courseId = req.params.idC;
-    var themeId = req.params.idT;
+    var topicId = req.params.idT;
     var params = req.body;
 
     if(userId != req.user.sub){
@@ -18,43 +18,46 @@ function createProgress(req, res){
             if(err){
                 return res.status(500).send({message: 'Error general al buscar el curso'});
             }else if(courseFind){   
-
-
-                /*Theme.findOne({_id: courseId, user: userId}, (err, themeFind)=>{
+                
+                Topic.findOne({_id: courseId, user: userId}, (err, topicFind)=>{
                     if(err){
                         return res.status(500).send({message: 'Error general al buscar el tema'});
-                    }else if(themeFind){   */
+                    }else if(topicFind){   
                         
-                Progress.findOne({user : params.user}, (err, progressFind)=>{
-                    if(err){
-                        return res.status(400).send({message:'Error general al buscar el progreso'});
-                    }else if(progressFind){
-                        return res.send({message: 'El progreso de este tema ya existe'});
-                    }else{
-                        let progress = new Progress();
-                        progress.user = params.user;
-                        progress.course = courseId;
-                        progress.themes = themeId;
-                        progress.total = params.total;
-                        team.save((err, progressSaved)=>{
-                            if(err){
-                                return res.status(500).send({message: 'Error general al guardar el progreso'});
-                            }else if(progressSaved){
-                                Theme.findByIdAndUpdate(themeId, {$push:{progress: progressSaved._id}}, {new: true}, (err, progressPush)=>{
-                                    if(err){
-                                        return res.status(500).send({message: 'Error general al agregar el progreso en el tema'})
-                                    }else if(progressPush){
-                                        return res.send({message: 'El progreso se guardo satisfactoriamente', progressPush});
-                                    }else{
-                                        return res.status(500).send({message: 'Error al agregar el progreso'})
-                                    }
-                                })
-                            }else{
-                                return res.send({message: 'No se pudo agregar el progreso'});
-                            }
-                        })
-                    }
-                })                
+                    Progress.findOne({user : params.user}, (err, progressFind)=>{
+                        if(err){
+                            return res.status(400).send({message:'Error general al buscar el progreso'});
+                        }else if(progressFind){
+                            return res.send({message: 'El progreso de este tema ya existe'});
+                        }else{
+                            let progress = new Progress();
+                            progress.user = params.user;
+                            progress.course = courseId;
+                            progress.topic = topicId;
+                            progress.total = params.total;
+                            team.save((err, progressSaved)=>{
+                                if(err){
+                                    return res.status(500).send({message: 'Error general al guardar el progreso'});
+                                }else if(progressSaved){
+                                    Theme.findByIdAndUpdate(themeId, {$push:{progress: progressSaved._id}}, {new: true}, (err, progressPush)=>{
+                                        if(err){
+                                            return res.status(500).send({message: 'Error general al agregar el progreso en el tema'})
+                                        }else if(progressPush){
+                                            return res.send({message: 'El progreso se guardo satisfactoriamente', progressPush});
+                                        }else{
+                                            return res.status(500).send({message: 'Error al agregar el progreso'})
+                                        }
+                                    })
+                                }else{
+                                    return res.send({message: 'No se pudo agregar el progreso'});
+                                }
+                            })
+                        }
+                    })                
+                }else{
+                    return res.status(404).send({message:'No se encontro el progreso'});
+                }
+                    })                
             }else{
                 return res.status(404).send({message:'No se encontro el progreso'});
             }
