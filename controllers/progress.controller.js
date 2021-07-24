@@ -137,7 +137,10 @@ function deleteProgress(req, res){
 }
 
 function listProgress(req, res){
-    Progress.find({}).exec((err, progressFind)=>{
+
+    let progressId = req.params.idP
+
+    Progress.find({progress: progressId}).populate("progress").exec((err, progressFind)=>{
         if(err){
             return res.status(500).send({message: 'Error general al obtener progreso'});
         }else if(progressFind){
