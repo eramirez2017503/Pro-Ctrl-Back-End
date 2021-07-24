@@ -12,7 +12,6 @@ function createTopic(req, res){
     var userId = req.params.userId;
     var courseId = req.params.courseId;
     var params = req.body;
-    let topic = new Topic();
 
     if(userId != req.user.sub){
         return res.status(400).send({message:'No posee permisos para hacer esta accion'});
@@ -24,6 +23,7 @@ function createTopic(req, res){
                 }else if(topicFind){
                     return res.send({message: 'Ya existe un tema con este nombre en el curso'});
                 }else{
+                    let topic = new Topic();
                     topic.nameTopic = params.nameTopic;
                     topic.descriptionTopic = params.descriptionTopic;
                     topic.course = courseId;
@@ -32,7 +32,7 @@ function createTopic(req, res){
                         if(err){
                             return res.status(400).send({message:'Error general al guardar el tema'});
                         }else if(topicSaved){
-                            Course.findByIdAndUpdate(courseId, {$push: {topics: topicSaved}}, {new : true}, (err, topicPush)=>{
+                            Course.findByIdAndUpdate(courseId, {$push:{topics: topicSaved._id}}, {new: true}, (err, topicPush)=>{
                                 if(err){
                                     return res.status(400).send({message:'Error general al guardar el tema en el curso'});
                                 }else if(topicPush){
@@ -56,6 +56,7 @@ function createTopic(req, res){
 
 function updateTopic(req, res){
     var userId = req.params.userId;
+    var courseId = req.params.courseId;
     var topicId = req.params.topicId;
     var params = req.body;
 
@@ -74,8 +75,20 @@ function updateTopic(req, res){
                             Topic.findOne({course: courseId,nameTopic : params.nameTopic}, (err, topicMatch)=>{
                                 if(err){
                                     return res.status(500).send({message:'Error al buscar el curso'});
-                                }else if (topicMatch._id != topicFind._id){
-                                    return res.send({message: 'Ya existente un tema con este nombre'})
+                                }else if (topicMatch){
+                                    if (topicMatch._id != topicId){
+                                        return res.send({message: 'Ya existente un tema con este nombre'})
+                                    }else{  
+                                        Topic.findOneAndUpdate({_id: topicId, course: courseId}, params, {new: true}, (err, topicUpdated)=>{
+                                            if(err){
+                                                return res.status(500).send({message:'Error general al actualizar el tema'});
+                                            }else if(topicUpdated){
+                                                return res.status(200).send({message:'Se actualizo el tema correctamente', topicUpdated});
+                                            }else{
+                                                return res.send({message: 'No se pudo actualizar el tema'})
+                                            }
+                                        });
+                                    }                               
                                 }else{  
                                     Topic.findOneAndUpdate({_id: topicId, course: courseId}, params, {new: true}, (err, topicUpdated)=>{
                                         if(err){
@@ -131,11 +144,11 @@ function deleteTopic(req, res){
                             if(err){
                                 return res.status(500).send({message:'Error al comparar contraseñas'});    
                             }else if(equalsPassword){
-                                Course.findOneAndUpdate({_id : courseId, topics : topicId}, {$pull : {topics : topicId}}, {new : true}, (err, courseUpdated)=>{
+                                Course.findOneAndUpdate({_id : courseId}, {$pull: {topics: topicId}}, {new : true}, (err, courseUpdated)=>{
                                     if(err){
                                         return res.status(500).send({message:'Error general al actualizar el usuario'});
-                                    }else if(userUpdated){
-                                        Topic.findOneAndUpdate({_id: topicId, course: courseId}, (err, topicDelete)=>{
+                                    }else if(courseUpdated){
+                                        Topic.findByIdAndDelete(topicId, (err, topicDelete)=>{
                                             if(err){
                                                 return res.status(500).send({message:'Error general al eliminar el tema'});
                                             }else if(topicDelete){
@@ -149,7 +162,7 @@ function deleteTopic(req, res){
                                     }
                                 })
                             }else{
-                                return res.status(404).send({message:'No se pudo eliminar el equipo de la liga'});
+                                return res.status(404).send({message:'No se pudo eliminar el tema del curso'});
                             }
                         })
                     }else{
@@ -166,7 +179,7 @@ function deleteTopic(req, res){
 function listTopics(req, res){
     let courseId = req.params.courseId
 
-    Topic.find({course: courseId}).exec((err,topics)=>{
+    Topic.find({course: courseId}).populate("course").exec((err,topics)=>{
         if(err){
             return res.status(500).send({message:'Error general al buscar los temas'});
         }else if(topics){
@@ -199,15 +212,16 @@ function getTopicById(req, res){
 function uploadImage(req, res){
     var userId = req.params.userId;
     var courseId = req.params.courseId;
+    var topicId = req.params.topicId;
     var fileName;
 
     if(userId != req.user.sub){
         res.status(401).send({message:'No tienes permisos'});
     }else{
         // Identifica si vienen archivos
-        if(req.files.imageCourse){
+        if(req.files.imageTopic){
             //ruta en la que llega la imagen
-            var filePath = req.files.imageCourse.path;
+            var filePath = req.files.imageTopic.path;
             
             //fileSplit separa palabras, direcciones, etc
             // Separar en jerarquia la ruta de la imagen alt + 92 "\\   alt + 124 ||"
@@ -218,15 +232,22 @@ function uploadImage(req, res){
             var extension = fileName.split('\.');
             var fileExt = extension[1];
             if( fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
-                Course.findOneAndUpdate({_id: courseId, administrator : userId}, {imageTeam: fileName}, {new: true}, (err, courseUpdate) => {
+                Course.find({_id: courseId, administrator: userId}).exec((err, courseFind)=>{
                     if(err){
-                        res.status(500).send({message:'Error general en imagen'});
-                    }else if(courseUpdate){
-                        res.send({course: courseUpdate, imageCourse: courseUpdate.imageCourse});
-                    }else{
-                        res.status(401).send({message:'No se ha podido actualizar'});
+                        res.status(500).send({message:'Error general en buscar el curso'});
+                    }else if(courseFind){
+                        Topic.findOneAndUpdate({_id: topicId, course: courseId}, {imageTopic: fileName}, {new: true}, (err, topicUpdate) => {
+                            if(err){
+                                res.status(500).send({message:'Error general en imagen'});
+                            }else if(topicUpdate){
+                                res.send({topic: topicUpdate, imageTopic: topicUpdate.imageTopic});
+                            }else{
+                                res.status(401).send({message:'No se ha podido actualizar'});
+                            }
+                        });                    }else{
+                        res.status(401).send({message:'No se ha encontrado el curso'});
                     }
-                });
+                })
             }else{
                 fs.unlink(filePath, (err) =>{
                     if(err){
