@@ -151,7 +151,6 @@ function listProgress(req, res){
     })
 }
 
-
 module.exports = {
     createProgress,
     updateProgress,
