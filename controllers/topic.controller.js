@@ -16,7 +16,7 @@ function createTopic(req, res){
     if(userId != req.user.sub){
         return res.status(400).send({message:'No posee permisos para hacer esta accion'});
     }else{
-        if(params.nameTopic && params.level){
+        if(params.nameTopic && params.level && params.descriptionTopic){
             Topic.findOne({course : courseId, nameTopic : params.nameTopic}, (err, topicFind)=>{
                 if(err){
                     return res.status(400).send({message:'Error general al buscar el curso'});
@@ -162,7 +162,7 @@ function deleteTopic(req, res){
                                     }
                                 })
                             }else{
-                                return res.status(404).send({message:'No se pudo eliminar el tema del curso'});
+                                return res.status(400).send({message:'No se pudo eliminar el tema del curso'});
                             }
                         })
                     }else{
