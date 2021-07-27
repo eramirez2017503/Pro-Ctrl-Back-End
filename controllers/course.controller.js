@@ -19,7 +19,7 @@ function createCourse(req, res){
         User.findOne({_id : userId}, (err, userFind)=>{
             if(err){
                 return res.status(500).send({message: 'Error general al buscar el usuario'});
-            }else if(userFind){
+            }else if(userFind.rol == 'ADMIN' || userFind.rol == 'MAESTRO'){
                 Course.findOne({idCourse : params.idCourse}, (err, courseFind)=>{ //buscar si el nombre o courseId ya existe
                     //posiblemente convertir a toLowerCase------------ revisar luego
                     if(err){
@@ -93,7 +93,7 @@ function createCourse(req, res){
                     }
                 });
             }else{
-                return res.send({message: 'El usuario no fue encontrado'});
+                return res.send({message: 'No posees permisos para esta función'});
             }
         })
     }
@@ -289,9 +289,8 @@ function getCourseById(req, res){
     }
 }
 
-function listCoursesAdmin(req, res){
+function listMyCourses(req, res){
     var userId = req.params.userId; 
-
     User.findOne({_id : userId}, (err, userFind)=>{
         if(err){
             return res.status(500).send({message: 'Error general al obtener el usuario'});
@@ -306,27 +305,22 @@ function listCoursesAdmin(req, res){
                         return res.status(500).send({message: 'Error general al obtener los cursos'});            
                     }
                 });
+            }else{
+                Course.find({users : userId}).exec((err, coursesFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener los cursos'});
+                    }else if(coursesFind){
+                        return res.send({message: 'Cursos encontrados', coursesFind});
+                    }else{
+                        return res.status(500).send({message: 'Error general al obtener los cursos'});            
+                    }
+                });
             }
         }else{
             return res.status(500).send({message: 'No se encontro ningun usuario, verifica bien'});            
         }
     })
     
-}
-
-
-function listCoursesUser(req, res){
-    var userId = req.params.userId; 
-
-    Course.find({users : userId}).exec((err, coursesFind)=>{
-        if(err){
-            return res.status(500).send({message: 'Error general al obtener los cursos'});
-        }else if(coursesFind){
-            return res.send({message: 'Cursos encontrados', coursesFind});
-        }else{
-            return res.status(500).send({message: 'Error general al obtener los cursos'});            
-        }
-    });
 }
 
 function uploadImage(req, res){
@@ -504,9 +498,8 @@ function listCoursesPublic(req, res){
     })
 }
 
-function listCoursesPrivate(req, res){
-
-    Course.find({type : 'PRIVATE'}, (err, coursesFind)=>{
+function listAllCourses(req, res){
+    Course.find({}, (err, coursesFind)=>{
         if(err){
             res.status(500).send({message:'Error general al buscar los usuarios'});
         }else if(coursesFind){
@@ -522,14 +515,12 @@ module.exports = {
     updateCourse,
     deleteCourse,
     getCourseById,
-    listCoursesAdmin,
-    listCoursesUser,
+    listMyCourses,
     uploadImage,
     getImageCourse,
 
-
     listCoursesPublic,
-    listCoursesPrivate,
+    listAllCourses,
 
     inscriptionCourse
 }
