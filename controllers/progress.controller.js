@@ -3,6 +3,7 @@
 var User = require('../models/user.model'); 
 var Course = require('../models/course.model'); 
 var Topic = require('../models/topic.model'); 
+var Progress = require('../models/progress.model'); 
 
 
 function createProgress(req, res){
@@ -19,12 +20,12 @@ function createProgress(req, res){
                 return res.status(500).send({message: 'Error general al buscar el curso'});
             }else if(courseFind){   
                 
-                Topic.findOne({_id: courseId, user: userId}, (err, topicFind)=>{
+                Topic.findOne({_id: topicId, user: userId}, (err, topicFind)=>{
                     if(err){
                         return res.status(500).send({message: 'Error general al buscar el tema'});
                     }else if(topicFind){   
                         
-                    Progress.findOne({user : params.user}, (err, progressFind)=>{
+                    Progress.findOne({topic : params.topicId}, (err, progressFind)=>{
                         if(err){
                             return res.status(400).send({message:'Error general al buscar el progreso'});
                         }else if(progressFind){
@@ -39,7 +40,7 @@ function createProgress(req, res){
                                 if(err){
                                     return res.status(500).send({message: 'Error general al guardar el progreso'});
                                 }else if(progressSaved){
-                                    Theme.findByIdAndUpdate(themeId, {$push:{progress: progressSaved._id}}, {new: true}, (err, progressPush)=>{
+                                    Topic.findByIdAndUpdate(themeId, {$push:{progress: progressSaved._id}}, {new: true}, (err, progressPush)=>{
                                         if(err){
                                             return res.status(500).send({message: 'Error general al agregar el progreso en el tema'})
                                         }else if(progressPush){
