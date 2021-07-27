@@ -9,6 +9,6 @@ var api = express.Router();
 api.post('/:id/:idC/:idT/createProgress', [mdAuth.ensureAuth], progressController.createProgress);
 api.put('/:id/updateProgress/:idP', [mdAuth.ensureAuth], progressController.updateProgress);
 api.post('/:id/deleteProgress/:idP', [mdAuth.ensureAuth], progressController.deleteProgress);
-api.get('/:idP/listProgress', [mdAuth.ensureAuth], progressController.listProgress);
+api.get('/:idT/listProgress', [mdAuth.ensureAuth], progressController.listProgress);
 
 module.exports = api;
