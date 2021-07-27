@@ -5,6 +5,7 @@ var bodyParser =  require('body-parser');
 var userRoute = require('./routes/user.route');
 var courseRoute = require('./routes/course.route');
 var topicRoute = require('./routes/topic.route');
+var reportRoute = require('./routes/report.routes')
 
 var app = express();
 
@@ -22,5 +23,6 @@ app.use((req, res, next) => {
 app.use('/v1', userRoute);
 app.use('/v1', courseRoute);
 app.use('/v1', topicRoute);
+app.use('/v1', reportRoute);
 
 module.exports = app;
