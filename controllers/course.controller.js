@@ -3,14 +3,15 @@
 var Course = require('../models/course.model');
 var User = require('../models/user.model');
 var bcrypt = require('bcrypt-nodejs'); 
+var Progress = require('../models/progress.model');
 var fs = require('fs');
 var path = require('path');
+const { param } = require('../routes/course.route');
 
 
 function createCourse(req, res){
     var userId = req.params.userId;
-    var params = req.body;
-    var bandera = false; 
+    var params = req.body;    
 
     if(userId != req.user.sub){
         return res.status(400).send({message:'No posees permisos para hacer esta accion'});
@@ -18,7 +19,7 @@ function createCourse(req, res){
         User.findOne({_id : userId}, (err, userFind)=>{
             if(err){
                 return res.status(500).send({message: 'Error general al buscar el usuario'});
-            }else if(userFind){
+            }else if(userFind.rol == 'ADMIN' || userFind.rol == 'MAESTRO'){
                 Course.findOne({idCourse : params.idCourse}, (err, courseFind)=>{ //buscar si el nombre o courseId ya existe
                     //posiblemente convertir a toLowerCase------------ revisar luego
                     if(err){
@@ -38,6 +39,7 @@ function createCourse(req, res){
                                 course.level = params.level;
                                 course.description = params.description;
                                 course.requirements = params.requirements;
+                                course.type = params.type;
                                 course.administrator = userId; 
                                 if(params.password == null || params.password == ''){ //si viene contraseña nula (para los publicos)
                                     course.password = '';
@@ -91,7 +93,7 @@ function createCourse(req, res){
                     }
                 });
             }else{
-                return res.send({message: 'El usuario no fue encontrado'});
+                return res.send({message: 'No posees permisos para esta función'});
             }
         })
     }
@@ -155,7 +157,6 @@ function updateCourse(req, res){
                                         return res.send({message: 'No se pudo actualizar el curso'})
                                     }
                                 });
-                                
                             }
                         }else if(params.name != courseFind.name || params.idCourse != courseFind.idCourse){ //si solo se cambio uno de los dos
                             if(params.name != courseFind.name){ //si se cambio el nombre
@@ -288,32 +289,38 @@ function getCourseById(req, res){
     }
 }
 
-function listCoursesAdmin(req, res){
+function listMyCourses(req, res){
     var userId = req.params.userId; 
-
-    Course.find({administrator : userId}).exec((err, coursesFind)=>{
+    User.findOne({_id : userId}, (err, userFind)=>{
         if(err){
-            return res.status(500).send({message: 'Error general al obtener los cursos'});
-        }else if(coursesFind){
-            return res.send({message: 'Cursos encontrados', coursesFind});
+            return res.status(500).send({message: 'Error general al obtener el usuario'});
+        }else if(userFind){
+            if(userFind.rol == 'ADMIN' || userFind.rol == 'MAESTRO'){
+                Course.find({administrator : userId}).exec((err, coursesFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener los cursos'});
+                    }else if(coursesFind){
+                        return res.send({message: 'Cursos encontrados', coursesFind});
+                    }else{
+                        return res.status(500).send({message: 'Error general al obtener los cursos'});            
+                    }
+                });
+            }else{
+                Course.find({users : userId}).exec((err, coursesFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener los cursos'});
+                    }else if(coursesFind){
+                        return res.send({message: 'Cursos encontrados', coursesFind});
+                    }else{
+                        return res.status(500).send({message: 'Error general al obtener los cursos'});            
+                    }
+                });
+            }
         }else{
-            return res.status(500).send({message: 'Error general al obtener los cursos'});            
+            return res.status(500).send({message: 'No se encontro ningun usuario, verifica bien'});            
         }
-    });
-}
-
-function listCoursesUser(req, res){
-    var userId = req.params.userId; 
-
-    Course.find({users : userId}).exec((err, coursesFind)=>{
-        if(err){
-            return res.status(500).send({message: 'Error general al obtener los cursos'});
-        }else if(coursesFind){
-            return res.send({message: 'Cursos encontrados', coursesFind});
-        }else{
-            return res.status(500).send({message: 'Error general al obtener los cursos'});            
-        }
-    });
+    })
+    
 }
 
 function uploadImage(req, res){
@@ -375,13 +382,145 @@ function getImageCourse(req, res){
     })
 }
 
+
+function inscriptionCourse(req, res){
+    var userId = req.params.userId;
+    var courseId = req.params.courseId;
+    var params = req.body; 
+
+    if(userId != req.user.sub){
+        return res.status(400).send({message:'No posees permisos para hacer esta accion'});
+    }else{
+        Course.findOne({_id : courseId}, (err, courseFind)=>{
+            if(err){
+                res.status(500).send({message:'Error general al buscar los usuarios'});
+            }else if(courseFind){
+                if(courseFind.type == 'PRIVATE'){ //si es curso con contraseña
+                    bcrypt.compare(params.password, courseFind.password, (err, equalsPassword)=>{
+                        if(err){
+                            return res.status(500).send({message:'Error al comparar contraseñas'});
+                        }else if(equalsPassword){
+                            User.findByIdAndUpdate(userId, {$push:{courses: courseFind._id}}, {new : true}).populate('courses').exec((err, coursePush)=>{
+                                if(err){
+                                    res.status(500).send({message:'Error general al hacer el push de cursos'});
+                                }else if(coursePush){
+                                    Course.findByIdAndUpdate(courseId, {$push : {users : userId}}, {new : true}, (err, userPush)=>{
+                                        if(err){
+                                            res.status(500).send({message:'Error general al hacer el push de cursos'});
+                                        }else if(userPush){
+                                            let progress = new Progress();
+                                            progress.user = userId;
+                                            progress.save((err, progressSaved)=>{
+                                                if(err){
+                                                    return res.status(500).send({message: 'Error general al guardar el nuevo Progreso'});
+                                                }else if(progressSaved){
+                                                    Progress.findOneAndUpdate({_id : progressSaved._id}, {$push : {course : courseId}}, {new : true}).populate('course').exec((err, courseProgressPush)=>{
+                                                        if(err){
+                                                            return res.status(500).send({message: 'Error general al hacer push de curso'});
+                                                        }else if(courseProgressPush){
+                                                            return res.send({message: 'Estas incrito al curso', courseProgressPush});
+                                                        }else{
+                                                            return res.status(404).send({message: 'No se pudo hacer el push de curso a Progress'})
+                                                        }
+                                                    });
+                                                }else{
+                                                    return res.send({message: 'No se pudo guardar el progreso'});
+                                                }
+                                            })
+                                        }else{
+                                            return res.status(404).send({message: 'No se pudo hacer el push de usuario a curso'})
+                                        }
+                                    });
+                                }else{
+                                    return res.status(404).send({message: 'No se pudo hacer el push de cursos a usuarios'})
+                                }
+                            });    
+                        }else{
+                            return res.status(404).send({message:'No hay coincidencias en la password'});
+                        }
+                    })
+                }else{ //si el curso no tiene contraseña
+                    User.findByIdAndUpdate(userId, {$push:{courses: courseFind._id}}, {new : true}).populate('courses').exec((err, coursePush)=>{
+                        if(err){
+                            res.status(500).send({message:'Error general al hacer el push de cursos'});
+                        }else if(coursePush){
+                            Course.findByIdAndUpdate(courseId, {$push : {users : userId}}, {new : true}, (err, userPush)=>{
+                                if(err){
+                                    res.status(500).send({message:'Error general al hacer el push de cursos'});
+                                }else if(userPush){
+                                    let progress = new Progress();
+                                    progress.user = userId;
+                                    progress.save((err, progressSaved)=>{
+                                        if(err){
+                                            return res.status(500).send({message: 'Error general al guardar el nuevo Progreso'});
+                                        }else if(progressSaved){
+                                            Progress.findOneAndUpdate({_id : progressSaved._id}, {$push : {course : courseId}}, {new : true}).populate('course').exec((err, courseProgressPush)=>{
+                                                if(err){
+                                                    return res.status(500).send({message: 'Error general al hacer push de curso'});
+                                                }else if(courseProgressPush){
+                                                    return res.send({message: 'Estas incrito al curso', courseProgressPush});
+                                                }else{
+                                                    return res.status(404).send({message: 'No se pudo hacer el push de curso a Progress'})
+                                                }
+                                            });
+                                        }else{
+                                            return res.send({message: 'No se pudo guardar el progreso'});
+                                        }
+                                    })
+                                }else{
+                                    return res.status(404).send({message: 'No se pudo hacer el push de usuario a curso'})
+                                }
+                            });
+                        }else{
+                            return res.status(404).send({message: 'No se pudo hacer el push de cursos a usuarios'})
+                        }
+                    });
+                    
+                }
+            }else{
+                res.status(404).send({message:'No se encontro ningun curso'});
+            }
+        })
+    }
+}
+
+
+function listCoursesPublic(req, res){
+
+    Course.find({type : 'PUBLIC'}, (err, coursesFind)=>{
+        if(err){
+            res.status(500).send({message:'Error general al buscar los usuarios'});
+        }else if(coursesFind){
+            return res.send({message: 'Cursos encontrados', coursesFind});
+        }else{
+            res.status(404).send({message:'No se encontraron cursos'})
+        }
+    })
+}
+
+function listAllCourses(req, res){
+    Course.find({}, (err, coursesFind)=>{
+        if(err){
+            res.status(500).send({message:'Error general al buscar los usuarios'});
+        }else if(coursesFind){
+            return res.send({message: 'Cursos encontrados', coursesFind});
+        }else{
+            res.status(404).send({message:'No se encontraron cursos'})
+        }
+    })
+}
+
 module.exports = {
     createCourse,
     updateCourse,
     deleteCourse,
     getCourseById,
-    listCoursesAdmin,
-    listCoursesUser,
+    listMyCourses,
     uploadImage,
-    getImageCourse
+    getImageCourse,
+
+    listCoursesPublic,
+    listAllCourses,
+
+    inscriptionCourse
 }
