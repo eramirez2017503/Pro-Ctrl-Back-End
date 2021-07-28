@@ -91,6 +91,10 @@ function createReport(req, res){
     }
 }
 
+function createReportUsers(req,res){
+    
+}
+
 function updateReport(req,res){
     var userId = req.params.userId;
     var reportId = req.params.reportId;
