@@ -19,7 +19,7 @@ function createTopic(req, res){
         if(params.nameTopic && params.level && params.descriptionTopic){
             Topic.findOne({course : courseId, nameTopic : params.nameTopic}, (err, topicFind)=>{
                 if(err){
-                    return res.status(400).send({message:'Error general al buscar el curso'});
+                    return res.status(400).send({message:'Error general al buscar el tema'});
                 }else if(topicFind){
                     return res.send({message: 'Ya existe un tema con este nombre en el curso'});
                 }else{

@@ -8,7 +8,7 @@ var topicSchema = Schema({
     descriptionTopic: String,
     course: {type: Schema.ObjectId, ref:'course'},
     level: Number,
-    content: String,
+    lessons: [{type: Schema.ObjectId, ref:'lesson'}],
     imageTopic: String
 });
 
