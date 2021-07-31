@@ -345,7 +345,7 @@ function uploadImage(req, res){
             var extension = fileName.split('\.');
             var fileExt = extension[1];
             if( fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
-                Course.findOneAndUpdate({_id: courseId, administrator : userId}, {imageTeam: fileName}, {new: true}, (err, courseUpdate) => {
+                Course.findOneAndUpdate({_id: courseId, administrator : userId}, {imageCourse: fileName}, {new: true}, (err, courseUpdate) => {
                     if(err){
                         res.status(500).send({message:'Error general en imagen'});
                     }else if(courseUpdate){
@@ -371,7 +371,7 @@ function uploadImage(req, res){
 
 function getImageCourse(req, res){
     var fileName = req.params.fileName;
-    var pathFile = './uploads/courses/' + fileName;
+    var pathFile = './uploads/course/' + fileName;
 
     fs.exists(pathFile, (exists) => {
         if(exists){
