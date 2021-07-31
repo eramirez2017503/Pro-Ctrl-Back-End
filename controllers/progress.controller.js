@@ -162,16 +162,29 @@ function listProgress(req,res){
                                 if(err){
                                     return res.status(500).send({message: 'Error general al obtener temas'});
                                 }else if(topicsFind){
-                                
-                                
-                                    topicsFind.forEach(topicFind =>{
-                                        console.log("Sí llega aquí")
-                                        topicFind.lesson.forEach(lessonFind =>{
-                                            progressFind.lesson.push(lessonFind._id);
-                                            progressFind.grades.push(parseInt(lessonFind.gradeLesson));
-                                        })
-                                    })
-
+                                    topicsFind._id.forEach(topicFind =>{
+                                        console.log("Sí llega aquí");
+                                        Topic.find({_id : topicFind._id}, (err, topiiic)=>{
+                                            if(err){
+                                                return res.status(500).send({message: 'Error general al obtener progreso'});
+                                            }else if(topiiic){
+                                                topiiic.lessons.forEach(lesson=>{
+                                                    Lesson.find({_id: lesson._id}, (err, lessonFind)=>{
+                                                        if(err){
+                                                            return res.status(500).send({message: 'Error general al obtener progreso'});
+                                                        }else if(lessonFind){
+                                                            progressFind.lesson.push(lessonFind._id);
+                                                            progressFind.grades.push(lessonFind.gradeLesson); 
+                                                        }else{
+                                                            return res.status(404).send({message:'No se pudo hacer push'});   
+                                                        }
+                                                    });
+                                                });
+                                            }else{
+                                                return res.status(404).send({message:'No se encontró el tema para luego hacer push '});
+                                            }
+                                        });
+                                    });
                                     return res.status(404).send({message:'Este son los arreglos', progressFind});
                                 }else{
                                     return res.status(404).send({message:'No se encontró el tema'});
@@ -181,12 +194,10 @@ function listProgress(req,res){
                             return res.status(404).send({message:'No se encontró el progreso'});
                         }
                     })
-
                 }else{
                     return res.status(404).send({message:'No se encontró el curso'});
                 }
             })
-        
         }else{
             return res.status(404).send({message:'No se encontró el usuario'});
         }
