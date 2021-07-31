@@ -92,50 +92,6 @@ function createReport(req, res){
     }
 }
 
-function createReportUsers(req,res){
-    var userId = req.params.userId;
-    var params = req.body;
-
-    if(userId != req.user.sub){
-        return res.status(400).send({message:'No posee permisos para hacer esta accion'});
-    }else{
-        if(params.nameUnit && params.grade && params.status){
-            Report.findOne({user : userId, nameUnit : params.nameUnit}, (err, reportFind)=>{
-                if(err){
-                    return res.status(400).send({message:'Error general al buscar el reporte'});
-                }else if(reportFind){
-                    return res.send({message: 'Ya existe un tema con este nombre en el reporte'});
-                }else{
-                    let report = new Report();
-                    report.nameUnit = params.nameUnit;
-                    report.grade = params.grade;
-                    report.status = params.status;
-                    report.users = userId;
-                    report.save((err, reportSaved)=>{
-                        if(err){
-                            return res.status(400).send({message:'Error general al guardar el reporte'});
-                        }else if(reportSaved){
-                            User.findByIdAndUpdate(userId, {$push:{reports: reportSaved._id}}, {new: true}, (err, reportPush)=>{
-                                if(err){
-                                    return res.status(400).send({message:'Error general al guardar el reporte en el usuario'});
-                                }else if(reportPush){
-                                    return res.send({message:'El reporte se guardo satisfactoriamente', reportPush});
-                                }else{
-                                    console.log(reportPush)
-                                    return res.send({message: 'No se pudo guardar el reporte en el usuario'});
-                                }
-                            })
-                        }else{
-                            return res.send({message: 'No se pudo guardar el reporte'});
-                        }
-                    });
-                }
-            });
-        }else{
-            return res.send({message:'Ingrese todos los parametros minimos'});
-        }
-    }
-}
 
 function updateReport(req,res){
     var userId = req.params.userId;
