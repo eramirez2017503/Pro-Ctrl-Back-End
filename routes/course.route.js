@@ -13,15 +13,11 @@ api.put('/:userId/updateCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAd
 api.post('/:userId/deleteCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAdmin || mdAuth.validRolMaestro], courseController.deleteCourse); //maestro y admin
 api.get('/getCourseById/:courseId', [mdAuth.ensureAuth], courseController.getCourseById);
 api.get('/listMyCourses/:userId', [mdAuth.ensureAuth], courseController.listMyCourses); //Lista de cursos asignados o cursos de alumnos. 
-api.post('/:userId/uploadImage/:courseId', [mdAuth.ensureAuth, mdAuth.validRolMaestro], courseController.uploadImage); //imagen 
+api.put('/:userId/uploadImage/:courseId', [mdAuth.ensureAuth, upload], courseController.uploadImage); //imagen
 api.get('/getImageCourse/:fileName', [upload], courseController.getImageCourse);//imagen 
 
 api.get('/getlistCoursesPublic',  courseController.listCoursesPublic); //lista para los no logueados
 api.get('/getAllCourses', courseController.listAllCourses); //mostrar todos los cursos, incluso los privados para los loguedos
-
-api.put('/:userId/uploadImage/:courseId', [mdAuth.ensureAuth, upload], courseController.uploadImage);
-api.get('/getImageCourse/:fileName', [upload], courseController.getImageCourse);  
-
 api.post('/:userId/inscriptionCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAlumno || mdAuth.validRolAdmin], courseController.inscriptionCourse); //inscripción
 
 module.exports = api;
