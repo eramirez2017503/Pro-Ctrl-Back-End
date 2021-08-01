@@ -19,5 +19,6 @@ api.get('/getImageCourse/:fileName', [upload], courseController.getImageCourse);
 api.get('/getlistCoursesPublic',  courseController.listCoursesPublic); //lista para los no logueados
 api.get('/getAllCourses', courseController.listAllCourses); //mostrar todos los cursos, incluso los privados para los loguedos
 api.post('/:userId/inscriptionCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAlumno || mdAuth.validRolAdmin], courseController.inscriptionCourse); //inscripción
+api.post('/:userId/verifyProgress/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAlumno], courseController.verifyProgress); //para verificar si esta suscrito
 
 module.exports = api;

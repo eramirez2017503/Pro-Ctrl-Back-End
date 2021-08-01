@@ -162,7 +162,7 @@ function listProgress(req,res){
                                 if(err){
                                     return res.status(500).send({message: 'Error general al obtener temas'});
                                 }else if(topicsFind){
-                                    topicsFind._id.forEach(topicFind =>{
+                                    topicsFind.forEach(topicFind =>{
                                         console.log("Sí llega aquí");
                                         Topic.find({_id : topicFind._id}, (err, topiiic)=>{
                                             if(err){

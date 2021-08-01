@@ -510,6 +510,23 @@ function listAllCourses(req, res){
     })
 }
 
+function verifyProgress(req, res){
+    var userId = req.params.userId;
+    var courseId = req.params.courseId;
+    var progressFinded = false;
+
+    Progress.findOne({course : courseId, user : userId}, (err, progressFind)=>{
+        if(err){
+            res.status(500).send({message:'Error general al buscar los usuarios'});
+        }else if(progressFind){
+            progressFinded = true;
+            return res.send({message: 'Cursos encontrados', progressFind, progressFinded});
+        }else{
+            return res.send({message: 'No se encontro un progressFind', progressFinded});
+        }
+    })
+}
+
 module.exports = {
     createCourse,
     updateCourse,
@@ -518,9 +535,8 @@ module.exports = {
     listMyCourses,
     uploadImage,
     getImageCourse,
-
     listCoursesPublic,
     listAllCourses,
-
-    inscriptionCourse
+    inscriptionCourse,
+    verifyProgress
 }
