@@ -205,7 +205,7 @@ function listLessons(req, res){
         }else if(lessons){
             return res.send({message: 'Lecciones encontradas', lessons});
         }else{
-            return res.status(404).send({message:'No se encotnro ninguna leccion'});
+            return res.status(404).send({message:'No se encontro ninguna leccion'});
         }
     })
 }
