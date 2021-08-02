@@ -378,13 +378,14 @@ function listProgressByTopic(req,res){
                                 var topicLessons = []
                                 var index = 0;
                                 var grade = 0;
-                                progressFind.lesson.map(lesson => {
-                                    if(topicFind.lessons.includes(lesson)){
+                                topicFind.lessons.map(lesson => {
+                                    if(progressFind.lesson.includes(lesson)){
                                         index = progressFind.lesson.indexOf(lesson);
                                         grade = progressFind.grades[index];
                                         topicLessons.push([lesson,grade])
                                     }
                                 })
+                                console.log(topicLessons    )
                                 return res.status(200).send({message:'Lecciones del tema', topicLessons});
                             }else{
                                 return res.status(404).send({message:'No se encontró el progreso'});
