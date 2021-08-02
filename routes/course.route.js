@@ -9,7 +9,7 @@ var upload = connectMultiparty({uploadDir: './uploads/course'});
 var api = express.Router();
 
 api.post('/createCourse/:userId', [mdAuth.ensureAuth], courseController.createCourse); //revisar quien lo creará 
-api.put('/:userId/updateCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAdmin || mdAuth.validRolMaestro], courseController.updateCourse);//maestro y admin
+api.put('/:userId/updateCourse/:courseId', [mdAuth.ensureAuth], courseController.updateCourse);//maestro y admin
 api.post('/:userId/deleteCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAdmin || mdAuth.validRolMaestro], courseController.deleteCourse); //maestro y admin
 api.get('/getCourseById/:courseId', [mdAuth.ensureAuth], courseController.getCourseById);
 api.get('/listMyCourses/:userId', [mdAuth.ensureAuth], courseController.listMyCourses); //Lista de cursos asignados o cursos de alumnos. 
@@ -20,5 +20,6 @@ api.get('/getlistCoursesPublic',  courseController.listCoursesPublic); //lista p
 api.get('/getAllCourses', courseController.listAllCourses); //mostrar todos los cursos, incluso los privados para los loguedos
 api.post('/:userId/inscriptionCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAlumno || mdAuth.validRolAdmin], courseController.inscriptionCourse); //inscripción
 api.post('/:userId/verifyProgress/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAlumno], courseController.verifyProgress); //para verificar si esta suscrito
+api.post('/:userId/updatePassword/:courseId', [mdAuth.ensureAuth], courseController.updatePassword); //actualizar la password
 
 module.exports = api;

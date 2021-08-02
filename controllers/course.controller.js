@@ -148,15 +148,58 @@ function updateCourse(req, res){
                                 });
                             }
                             if(!actualizacionNombre && !actualizacionidCurse){
-                                Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                Course.findOne({_id : courseId}, (err, courseFind)=>{
                                     if(err){
-                                        return res.status(500).send({message:'Error general al actualizar'});
-                                    }else if(courseUpdated){
-                                        return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
-                                    }else{
-                                        return res.send({message: 'No se pudo actualizar el curso'})
+                                        return res.status(500).send({message:'Error al buscar el curso'});
+                                    }else if (courseFind){
+                                        if(courseFind.type == params.type){
+                                            Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                                if(err){
+                                                    return res.status(500).send({message:'Error general al actualizar'});
+                                                }else if(courseUpdated){
+                                                    return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                }else{
+                                                    return res.send({message: 'No se pudo actualizar el curso'})
+                                                }
+                                            });
+                                        }else{
+                                            if(courseFind.type == 'PUBLIC' && params.type == 'PRIVATE'){
+                                                bcrypt.hash(params.passwordCourse, null, null, (err, passwordHash)=>{
+                                                    if(err){
+                                                        return res.status(500).send({message:'Error general encriptar la password'});
+                                                    }else if(passwordHash){
+                                                        params.password = passwordHash;
+                                                        Course.findOneAndUpdate({_id : courseId}, params, {new : true}, (err, courseUpdated)=>{
+                                                            if(err){
+                                                                res.status(500).send({message:'Error actualizar el curso'});
+                                                            }else if(courseUpdated){
+                                                                return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                            }else{
+                                                                return res.send({message: 'No se pudo actualizar'});        
+                                                            }
+                                                        })
+
+                                                    }else{
+
+                                                    }
+                                                });
+                                            }else if(courseFind.type == 'PRIVATE' && params.type == 'PUBLIC'){
+                                                Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                                    if(err){
+                                                        return res.status(500).send({message:'Error general al actualizar'});
+                                                    }else if(courseUpdated){
+                                                        return res.send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                    }else{
+                                                        return res.send({message: 'No se pudo actualizar el curso'})
+                                                    }
+                                                });
+                                            }
+                                        }  
+                                    }else{  
+                                        return res.send({message: 'No se encontro el curso'})
                                     }
                                 });
+
                             }
                         }else if(params.name != courseFind.name || params.idCourse != courseFind.idCourse){ //si solo se cambio uno de los dos
                             if(params.name != courseFind.name){ //si se cambio el nombre
@@ -166,13 +209,55 @@ function updateCourse(req, res){
                                     }else if (courseNameFind){
                                         return res.send({message: 'Ya existente un curso con este nombre'})
                                     }else{  
-                                        Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                        Course.findOne({_id : courseId}, (err, courseFind)=>{
                                             if(err){
-                                                return res.status(500).send({message:'Error general al actualizar'});
-                                            }else if(courseUpdated){
-                                                return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
-                                            }else{
-                                                return res.send({message: 'No se pudo actualizar el curso'})
+                                                return res.status(500).send({message:'Error al buscar el curso'});
+                                            }else if (courseFind){
+                                                if(courseFind.type == params.type){
+                                                    Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                                        if(err){
+                                                            return res.status(500).send({message:'Error general al actualizar'});
+                                                        }else if(courseUpdated){
+                                                            return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                        }else{
+                                                            return res.send({message: 'No se pudo actualizar el curso'})
+                                                        }
+                                                    });
+                                                }else{
+                                                    if(courseFind.type == 'PUBLIC' && params.type == 'PRIVATE'){
+                                                        bcrypt.hash(params.passwordCourse, null, null, (err, passwordHash)=>{
+                                                            if(err){
+                                                                return res.status(500).send({message:'Error general encriptar la password'});
+                                                            }else if(passwordHash){
+                                                                params.password = passwordHash;
+                                                                Course.findOneAndUpdate({_id : courseId}, params, {new : true}, (err, courseUpdated)=>{
+                                                                    if(err){
+                                                                        res.status(500).send({message:'Error actualizar el curso'});
+                                                                    }else if(courseUpdated){
+                                                                        return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                                    }else{
+                                                                        return res.send({message: 'No se pudo actualizar'});        
+                                                                    }
+                                                                })
+        
+                                                            }else{
+        
+                                                            }
+                                                        });
+                                                    }else if(courseFind.type == 'PRIVATE' && params.type == 'PUBLIC'){
+                                                        Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                                            if(err){
+                                                                return res.status(500).send({message:'Error general al actualizar'});
+                                                            }else if(courseUpdated){
+                                                                return res.send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                            }else{
+                                                                return res.send({message: 'No se pudo actualizar el curso'})
+                                                            }
+                                                        });
+                                                    }
+                                                }  
+                                            }else{  
+                                                return res.send({message: 'No se encontro el curso'})
                                             }
                                         });
                                     }
@@ -185,6 +270,66 @@ function updateCourse(req, res){
                                     }else if (courseNameFind){
                                         return res.send({message: 'Ya existente un curso con este identificador'})
                                     }else{  
+                                        Course.findOne({_id : courseId}, (err, courseFind)=>{
+                                            if(err){
+                                                return res.status(500).send({message:'Error al buscar el curso'});
+                                            }else if (courseFind){
+                                                if(courseFind.type == params.type){
+                                                    Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                                        if(err){
+                                                            return res.status(500).send({message:'Error general al actualizar'});
+                                                        }else if(courseUpdated){
+                                                            return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                        }else{
+                                                            return res.send({message: 'No se pudo actualizar el curso'})
+                                                        }
+                                                    });
+                                                }else{
+                                                    if(courseFind.type == 'PUBLIC' && params.type == 'PRIVATE'){
+                                                        bcrypt.hash(params.passwordCourse, null, null, (err, passwordHash)=>{
+                                                            if(err){
+                                                                return res.status(500).send({message:'Error general encriptar la password'});
+                                                            }else if(passwordHash){
+                                                                params.password = passwordHash;
+                                                                Course.findOneAndUpdate({_id : courseId}, params, {new : true}, (err, courseUpdated)=>{
+                                                                    if(err){
+                                                                        res.status(500).send({message:'Error actualizar el curso'});
+                                                                    }else if(courseUpdated){
+                                                                        return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                                    }else{
+                                                                        return res.send({message: 'No se pudo actualizar'});        
+                                                                    }
+                                                                })
+        
+                                                            }else{
+        
+                                                            }
+                                                        });
+                                                    }else if(courseFind.type == 'PRIVATE' && params.type == 'PUBLIC'){
+                                                        Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                                            if(err){
+                                                                return res.status(500).send({message:'Error general al actualizar'});
+                                                            }else if(courseUpdated){
+                                                                return res.send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                            }else{
+                                                                return res.send({message: 'No se pudo actualizar el curso'})
+                                                            }
+                                                        });
+                                                    }
+                                                }  
+                                            }else{  
+                                                return res.send({message: 'No se encontro el curso'})
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }else{
+                            Course.findOne({_id : courseId}, (err, courseFind)=>{
+                                if(err){
+                                    return res.status(500).send({message:'Error al buscar el curso'});
+                                }else if (courseFind){
+                                    if(courseFind.type == params.type){
                                         Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
                                             if(err){
                                                 return res.status(500).send({message:'Error general al actualizar'});
@@ -194,17 +339,41 @@ function updateCourse(req, res){
                                                 return res.send({message: 'No se pudo actualizar el curso'})
                                             }
                                         });
-                                    }
-                                });
-                            }
-                        }else{
-                            Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
-                                if(err){
-                                    return res.status(500).send({message:'Error general al actualizar'});
-                                }else if(courseUpdated){
-                                    return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
-                                }else{
-                                    return res.send({message: 'No se pudo actualizar el curso'})
+                                    }else{
+                                        if(courseFind.type == 'PUBLIC' && params.type == 'PRIVATE'){
+                                            bcrypt.hash(params.passwordCourse, null, null, (err, passwordHash)=>{
+                                                if(err){
+                                                    return res.status(500).send({message:'Error general encriptar la password'});
+                                                }else if(passwordHash){
+                                                    params.password = passwordHash;
+                                                    Course.findOneAndUpdate({_id : courseId}, params, {new : true}, (err, courseUpdated)=>{
+                                                        if(err){
+                                                            res.status(500).send({message:'Error actualizar el curso'});
+                                                        }else if(courseUpdated){
+                                                            return res.status(200).send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                        }else{
+                                                            return res.send({message: 'No se pudo actualizar'});        
+                                                        }
+                                                    })
+
+                                                }else{
+
+                                                }
+                                            });
+                                        }else if(courseFind.type == 'PRIVATE' && params.type == 'PUBLIC'){
+                                            Course.findByIdAndUpdate(courseId, params, {new: true}, (err, courseUpdated)=>{
+                                                if(err){
+                                                    return res.status(500).send({message:'Error general al actualizar'});
+                                                }else if(courseUpdated){
+                                                    return res.send({message:'Se actualizo el curso satisfactoriamente', courseUpdated});
+                                                }else{
+                                                    return res.send({message: 'No se pudo actualizar el curso'})
+                                                }
+                                            });
+                                        }
+                                    }  
+                                }else{  
+                                    return res.send({message: 'No se encontro el curso'})
                                 }
                             });
                         }
@@ -527,6 +696,54 @@ function verifyProgress(req, res){
     })
 }
 
+function updatePassword(req, res){
+    var userId = req.params.userId;
+    var courseId = req.params.courseId;
+    var params = req.body; 
+
+    User.findOne({_id : userId}, (err, userFind)=>{
+        if(err){
+            res.status(500).send({message:'Error general al buscar los usuarios'});
+        }else if(userFind){
+            bcrypt.compare(params.passwordAdmin, userFind.password, (err, equalsPasswordAdmin)=>{
+                if(err){
+                    res.status(500).send({message:'Error general al comparar contraseña'});
+                }else if(equalsPasswordAdmin){
+                    Course.findOne({_id : courseId}, (err, courseFind)=>{
+                        if(err){
+                            res.status(500).send({message:'Error al buscar el curso'});
+                        }else if(courseFind){
+                            bcrypt.hash(params.passwordCourse, null, null, (err, passwordHash)=>{
+                                if(err){
+                                    res.status(500).send({message:'Error al encriptar la contraseña'});
+                                }else if(passwordHash){
+                                    Course.findOneAndUpdate({_id : courseId}, {password : passwordHash}, {new : true}, (err, courseUpdated)=>{
+                                        if(err){
+                                            res.status(500).send({message:'Error actualizar el curso'});
+                                        }else if(courseUpdated){
+                                            return res.send({message: 'Se actualizo satisfactoriamente la password de curso', courseUpdated});        
+                                        }else{
+                                            return res.send({message: 'No se pudo actualizar'});        
+                                        }
+                                    })
+                                }else{
+                                    return res.send({message: 'No se pudo encriptar la contraseña'});        
+                                }
+                            });
+                        }else{
+                            return res.send({message: 'No se encontro el curso'});
+                        }
+                    })
+                }else{
+                    return res.send({message: 'La password de administrador no coincide'});
+                }
+            });            
+        }else{
+            return res.send({message: 'No se encontro el '});
+        }
+    });
+}
+
 module.exports = {
     createCourse,
     updateCourse,
@@ -538,5 +755,6 @@ module.exports = {
     listCoursesPublic,
     listAllCourses,
     inscriptionCourse,
-    verifyProgress
+    verifyProgress,
+    updatePassword
 }
