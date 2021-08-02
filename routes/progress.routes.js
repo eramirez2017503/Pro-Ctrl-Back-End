@@ -6,7 +6,8 @@ var mdAuth = require('../middleware/authenticated');
 
 var api = express.Router();
 
-api.put('/:id/:idC/updateProgress', progressController.updateProgress);
-api.post('/:id/:idC/listProgress', progressController.listProgress);
+api.put('/:id/:idC/:idL/updateProgress', mdAuth.ensureAuth, progressController.updateProgress);
+api.post('/:id/:idC/listProgress', mdAuth.ensureAuth, progressController.listProgress);
+api.get('/:courseId/usersInProgress', progressController.getUsersCourse);
 
 module.exports = api;
