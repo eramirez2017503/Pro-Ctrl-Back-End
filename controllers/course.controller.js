@@ -450,19 +450,12 @@ function inscriptionCourse(req, res){
                                 }else if(userPush){
                                     let progress = new Progress();
                                     progress.user = userId;
+                                    progress.course = courseId;
                                     progress.save((err, progressSaved)=>{
                                         if(err){
                                             return res.status(500).send({message: 'Error general al guardar el nuevo Progreso'});
                                         }else if(progressSaved){
-                                            Progress.findOneAndUpdate({_id : progressSaved._id}, {$push : {course : courseId}}, {new : true}).populate('course').exec((err, courseProgressPush)=>{
-                                                if(err){
-                                                    return res.status(500).send({message: 'Error general al hacer push de curso'});
-                                                }else if(courseProgressPush){
-                                                    return res.send({message: 'Estas incrito al curso', courseProgressPush});
-                                                }else{
-                                                    return res.status(404).send({message: 'No se pudo hacer el push de curso a Progress'})
-                                                }
-                                            });
+                                            return res.send({message: 'Estas incrito al curso', progressSaved});
                                         }else{
                                             return res.send({message: 'No se pudo guardar el progreso'});
                                         }

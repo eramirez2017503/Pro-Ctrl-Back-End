@@ -8,7 +8,7 @@ var Progress = require('../models/progress.model');
 const lessonModel = require('../models/lesson.model');
 
 
-function updateProgress(req, res){
+/* function updateProgress(req, res){
     let userId = req.params.id;
     let courseId = req.params.idC;
 
@@ -133,10 +133,10 @@ function updateProgress(req, res){
             return res.status(404).send({message:'No se encontró el curso'});
         }
     })
-}
+} */
 
 
-function listProgress(req,res){
+/* function listProgress(req,res){
     let userId = req.params.id;
     let courseId = req.params.idC;
 
@@ -174,7 +174,7 @@ function listProgress(req,res){
                                                                     if(err){
                                                                         return res.status(500).send({message: 'Error general al obtener progreso'});
                                                                     }else if(progress2Find){
-                                                                        console.log(lessonFind);
+                                                                        console.log(progress2Find);
                                                                     }else{
                                                                         return res.status(404).send({message:'No se encontró el tema para luego hacer push '});
                                                                     }
@@ -206,8 +206,212 @@ function listProgress(req,res){
                     return res.status(404).send({message:'No se encontró el curso'});
                 }
             })
-        }
+} */
 
+function updateProgress(req,res){
+    let userId = req.params.id;
+    let courseId = req.params.idC;
+    let lessonId = req.params.idL;
+    var params = req.body;
+
+    if(userId != req.user.sub){
+        return res.status(400).send({message:'No posee permisos para hacer esta accion'});
+    }else{
+        if(params.grade){
+            Progress.findOne({user: userId, course:courseId}, (err, progressUpdated)=>{
+                if(err){
+                    return res.status(500).send({message:'Error general al actualizar el tema'});
+                }else if(progressUpdated){
+                    var i = progressUpdated.lesson.indexOf(lessonId);
+                    console.log(i)
+                    var update = { "$set": {} };
+                    update["$set"]["grades."+i] = params.grade;
+                    Progress.findByIdAndUpdate(progressUpdated._id, update,{new: true}, (err, progressUpdated)=>{
+                        if(err){
+                            return res.status(500).send({message:'Error general al actualizar el progreso'});
+                        }else if(progressUpdated){
+                            return res.status(200).send({message:'Se actualizo el progreso', progressUpdated});
+                        }else{
+                            return res.send({message: 'No se pudo actualizar el progreso'})
+                        }
+                    });
+                }else{
+                    return res.send({message: 'No se pudo actualizar el tema'})
+                }
+            });
+        }else{
+            return res.send({message: 'Ingrese la nota'})
+        }
+    }
+}
+
+function listProgress(req,res){
+    let userId = req.params.id;
+    let courseId = req.params.idC;
+
+    if(userId != req.user.sub){
+        return res.status(400).send({message:'No posee permisos para hacer esta accion'});
+    }else{
+        Progress.findOne({user: userId, course: courseId}).exec((err, progressFind)=>{
+            if(err){
+                return res.status(500).send({message: 'Error general al obtener el progreso'});
+            }else if(progressFind){
+                Course.findById(courseId).exec((err,courseFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener el curso'});
+                    }else if(courseFind){
+                        courseFind.topics.map(topic => {
+                            Topic.findById(topic).exec((err,topicFind)=>{
+                                if(err){
+                                    return res.status(500).send({message: 'Error general al obtener el tema'});
+                                }else if(topicFind){
+                                    topicFind.lessons.map(lesson => {
+                                        Lesson.findById(lesson).exec((err,lessonFind)=>{
+                                            if(err){
+                                                return res.status(500).send({message: 'Error general al obtener la leccion'});
+                                            }else if(lessonFind){
+                                                if(progressFind.lesson.includes(lessonFind._id)){
+                                                    console.log("already in the progress")
+                                                }else{
+                                                    Progress.findByIdAndUpdate(progressFind._id, {$push:{lesson: lessonFind._id,grades: null}},{new: true}, (err, lessonUpdated)=>{
+                                                        if(err){
+                                                            return res.status(500).send({message:'Error general al actualizar el tema'});
+                                                        }else if(lessonUpdated){
+                                                            console.log("added to progress")
+                                                        }else{
+                                                            return res.send({message: 'No se pudo actualizar el tema'})
+                                                        }
+                                                    }); 
+                                                }
+                                            }else{
+                                                return res.status(404).send({message:'No se encontró la leccion'});
+                                            }
+                                        })
+                                    })
+                                }else{
+                                    return res.status(404).send({message:'No se encontró el tema'});
+                                }
+                            })
+                        })
+                    }else{
+                        return res.status(404).send({message:'No se encontró el curso'});
+                    }
+                })
+                Progress.findById(progressFind._id).exec((err, progressFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener el progreso'});
+                    }else if(progressFind){
+                        return res.status(200).send({message:'Se reviso el progreso', progressFind});
+                    }else{
+                        return res.status(404).send({message:'No se encontró el progreso'});
+                    }
+                })
+            }else{
+                console.log(userId,courseId)
+                return res.status(404).send({message:'No se encontró el progreso'});
+            }
+        })
+    }
+}
+
+function listProgressByTopic(req,res){
+    let userId = req.params.id;
+    let courseId = req.params.idC;
+    let topicId = req.params.idT;
+
+    if(userId != req.user.sub){
+        return res.status(400).send({message:'No posee permisos para hacer esta accion'});
+    }else{
+        Progress.findOne({user: userId, course: courseId}).exec((err, progressFind)=>{
+            if(err){
+                return res.status(500).send({message: 'Error general al obtener el progreso'});
+            }else if(progressFind){
+                Course.findById(courseId).exec((err,courseFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener el curso'});
+                    }else if(courseFind){
+                        courseFind.topics.map(topic => {
+                            Topic.findById(topic).exec((err,topicFind)=>{
+                                if(err){
+                                    return res.status(500).send({message: 'Error general al obtener el tema'});
+                                }else if(topicFind){
+                                    topicFind.lessons.map(lesson => {
+                                        Lesson.findById(lesson).exec((err,lessonFind)=>{
+                                            if(err){
+                                                return res.status(500).send({message: 'Error general al obtener la leccion'});
+                                            }else if(lessonFind){
+                                                if(progressFind.lesson.includes(lessonFind._id)){
+                                                    console.log("already in the progress")
+                                                }else{
+                                                    Progress.findByIdAndUpdate(progressFind._id, {$push:{lesson: lessonFind._id,grades: null}},{new: true}, (err, lessonUpdated)=>{
+                                                        if(err){
+                                                            return res.status(500).send({message:'Error general al actualizar el tema'});
+                                                        }else if(lessonUpdated){
+                                                            console.log("added to progress")
+                                                        }else{
+                                                            return res.send({message: 'No se pudo actualizar el tema'})
+                                                        }
+                                                    }); 
+                                                }
+                                            }else{
+                                                return res.status(404).send({message:'No se encontró la leccion'});
+                                            }
+                                        })
+                                    })
+                                }else{
+                                    return res.status(404).send({message:'No se encontró el tema'});
+                                }
+                            })
+                        })
+                    }else{
+                        return res.status(404).send({message:'No se encontró el curso'});
+                    }
+                })
+                Topic.findById(topicId).exec((err, topicFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener el tema'});
+                    }else if(topicFind){
+                        Progress.findById(progressFind._id).exec((err, progressFind)=>{
+                            if(err){
+                                return res.status(500).send({message: 'Error general al obtener el progreso'});
+                            }else if(progressFind){
+                                var topicGrade = progressFind.lesson.map(lesson => {
+                                    if(topicFind.lessons.includes(lesson)){
+                                        return lesson
+                                    }
+                                })
+                                console.log(topicGrade)
+                                return res.status(200).send({message:'Se reviso el progreso', progressFind});
+                            }else{
+                                return res.status(404).send({message:'No se encontró el progreso'});
+                            }
+                        })
+                    }else{
+                        return res.status(404).send({message:'No se encontró el tema'});
+                    }
+                })
+            }else{
+                console.log(userId,courseId)
+                return res.status(404).send({message:'No se encontró el progreso'});
+            }
+        })
+    }
+}
+
+function getUsersCourse(req,res){
+    let courseId = req.params.courseId;
+
+    Progress.findOne({course: courseId}).exec((err,usersInfo)=>{
+        if(err){
+            return res.status(500).send({message: 'Error general al obtener los usuarios'});
+        }else if(usersInfo){
+            let users = usersInfo.map(userProgress => userProgress.user);
+            return res.status(200).send({message:'Usuarios', users});
+        }else{
+            return res.status(404).send({message:'No se encontraron usuarios'});
+        }
+    })
+}
 
 
 
@@ -215,6 +419,8 @@ function listProgress(req,res){
 module.exports = {
     updateProgress,
     listProgress,
+    getUsersCourse,
+    listProgressByTopic
 }
 
 
