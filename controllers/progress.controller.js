@@ -375,13 +375,17 @@ function listProgressByTopic(req,res){
                             if(err){
                                 return res.status(500).send({message: 'Error general al obtener el progreso'});
                             }else if(progressFind){
-                                var topicGrade = progressFind.lesson.map(lesson => {
+                                var topicLessons = []
+                                var index = 0;
+                                var grade = 0;
+                                progressFind.lesson.map(lesson => {
                                     if(topicFind.lessons.includes(lesson)){
-                                        return lesson
+                                        index = progressFind.lesson.indexOf(lesson);
+                                        grade = progressFind.grades[index];
+                                        topicLessons.push([lesson,grade])
                                     }
                                 })
-                                console.log(topicGrade)
-                                return res.status(200).send({message:'Se reviso el progreso', progressFind});
+                                return res.status(200).send({message:'Lecciones del tema', topicLessons});
                             }else{
                                 return res.status(404).send({message:'No se encontró el progreso'});
                             }
@@ -413,6 +417,33 @@ function getUsersCourse(req,res){
     })
 }
 
+function listProgressAdmin(req,res){
+    let userId = req.params.id;
+    let courseId = req.params.idC;
+
+    if(userId != req.user.sub){
+        return res.status(400).send({message:'No posee permisos para hacer esta accion'});
+    }else{
+        Course.findOne({_id:courseId, administrator: userId}).exec((err,courseFind)=>{
+            if(err){
+                return res.status(500).send({message: 'Error general al obtener el curso'});
+            }else if(courseFind){
+                Progress.find({course:courseId}).populate('user').populate('course').exec((err, progressFind)=>{
+                    if(err){
+                        return res.status(500).send({message: 'Error general al obtener el progres'});
+                    }else if(progressFind){
+                        console.log(progressFind)
+                        return res.status(200).send({message:'Usuarios en el curso', progressFind});
+                    }else{
+                        return res.status(404).send({message:'No se encontraron el progres'});
+                    }
+                })
+            }else{
+                return res.status(404).send({message:'No se encontraron el curso'});
+            }
+        })
+    }
+}
 
 
 
@@ -420,7 +451,8 @@ module.exports = {
     updateProgress,
     listProgress,
     getUsersCourse,
-    listProgressByTopic
+    listProgressByTopic,
+    listProgressAdmin
 }
 
 
