@@ -737,6 +737,40 @@ function updatePassword(req, res){
     });
 }
 
+function deleteCourseUser(req, res){
+    var userId = req.params.userId;
+    var courseId = req.params.courseId;
+
+    User.findByIdAndUpdate(userId, {$pull:{courses: courseId}}, {new : true}).populate('courses').exec((err, coursePush)=>{
+        if(err){
+            res.status(500).send({message:'Error general al hacer el push de cursos'});
+        }else if(coursePush){
+            Course.findByIdAndUpdate(courseId, {$pull : {users : userId}}, {new : true}, (err, userPush)=>{
+                if(err){
+                    res.status(500).send({message:'Error general al hacer el push de cursos'});
+                }else if(userPush){
+                    
+                    Progress.findOneAndDelete({user : userId, course : courseId}, (err, progressSaved)=>{
+                        if(err){
+                            return res.status(500).send({message: 'Error general al eliminar el Progreso'});
+                        }else if(progressSaved){
+                            return res.send({message: 'Ya no estas suscrito al curso y se elimino tu progreso', progressSaved});
+                        }else{
+                            return res.send({message: 'No se pudo guardar el progreso'});
+                        }
+                    });
+                    
+                    //return res.send({message: 'Ya no estas suscrito al curso', userPush});
+                }else{
+                    return res.status(404).send({message: 'No se pudo hacer el push de usuario a curso'})
+                }
+            });
+        }else{
+            return res.status(404).send({message: 'No se pudo hacer el push de cursos a usuarios'})
+        }
+    });    
+}
+
 module.exports = {
     createCourse,
     updateCourse,
@@ -749,5 +783,6 @@ module.exports = {
     listAllCourses,
     inscriptionCourse,
     verifyProgress,
-    updatePassword
+    updatePassword,
+    deleteCourseUser
 }

@@ -21,5 +21,7 @@ api.get('/getAllCourses', courseController.listAllCourses); //mostrar todos los 
 api.post('/:userId/inscriptionCourse/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAlumno || mdAuth.validRolAdmin], courseController.inscriptionCourse); //inscripción
 api.post('/:userId/verifyProgress/:courseId', [mdAuth.ensureAuth, mdAuth.validRolAlumno], courseController.verifyProgress); //para verificar si esta suscrito
 api.post('/:userId/updatePassword/:courseId', [mdAuth.ensureAuth], courseController.updatePassword); //actualizar la password
+api.post('/:userId/deleteCourseUser/:courseId', [mdAuth.ensureAuth], courseController.deleteCourseUser); //actualizar la password
+
 
 module.exports = api;
